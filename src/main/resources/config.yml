@@ -2,3 +2,6 @@ hostname: "0.0.0.0"
 port: 8080
 username: "admin"
 password: "admin"
+
+# Don't change this URL, unless you want to use a specific version of the Webapp.
+download_url: "https://github.com/Physical-Science-Academy/NCPWebserver/releases/latest/download/webapp.zip"
