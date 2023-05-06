@@ -1,4 +1,4 @@
-package com.cimeyclust.ncpserver;
+package com.cimeyclust.ncpwebserver;
 
 import com.google.gson.Gson;
 import fi.iki.elonen.NanoHTTPD;
@@ -16,8 +16,8 @@ public class HttpServer extends NanoHTTPD {
         String responseBody = "";
         int code = 200;
         switch (session.getUri()) {
-            case "/":
-                responseBody = "{}";
+            case "/modules":
+                responseBody = gson.toJson(Plugin.getInstance().getModules());
                 break;
             default:
                 code = 404;
@@ -26,4 +26,8 @@ public class HttpServer extends NanoHTTPD {
 
         return newFixedLengthResponse(Response.Status.lookup(code), "application/json", responseBody);
     }
+}
+
+class Modules {
+
 }

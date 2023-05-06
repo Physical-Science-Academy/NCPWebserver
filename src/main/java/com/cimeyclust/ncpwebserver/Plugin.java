@@ -1,10 +1,15 @@
-package com.cimeyclust.ncpserver;
+package com.cimeyclust.ncpwebserver;
 
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.Config;
 import net.catrainbow.nocheatplus.NoCheatPlus;
+import net.catrainbow.nocheatplus.checks.Check;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Plugin extends PluginBase {
     private static Plugin instance;
@@ -45,7 +50,16 @@ public class Plugin extends PluginBase {
             getLogger().info("§aNCP Plugin found!");
             ncp = NoCheatPlus.instance;
         }
-        getLogger().info("NCP Webserver is now accessible via http://" + config.getString("hostname") + ":" + config.getInt("port"));
+
+        try {
+            InetAddress inetAddress = InetAddress.getByName(config.getString("hostname"));
+            getLogger().info("NCP Webserver is now accessible via http://" + inetAddress.getHostAddress() + ":" + config.getInt("port"));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            getLogger().info("The provided hostname could not be resolved!");
+            getLogger().info("§cDisabling NCP Webserver...");
+            this.getServer().getPluginManager().disablePlugin(this);
+        }
     }
 
     @Override
@@ -68,6 +82,10 @@ public class Plugin extends PluginBase {
 
     public HttpServer getHttpServer() {
         return server;
+    }
+
+    public List<Check> getModules() {
+        return new ArrayList<>(ncp.getAllNCPCheck().values());
     }
 
     synchronized public static Plugin getInstance() {
