@@ -44,11 +44,10 @@ public class Plugin extends PluginBase {
             setupWebapp(config.getString("download_url"), new File(getDataFolder() + "/webapp"));
         } catch (IOException e) {
             e.printStackTrace();
-            // TODO: Add when in production
-            // getLogger().info("Download or Unpacking of the webapp failed. Please make sure that \"download_url\" in the config hasn't been modified.");
-            // getLogger().info("§cDisabling NCP Webserver...");
-            // this.getServer().getPluginManager().disablePlugin(this);
-            // return;
+            getLogger().info("Download or Unpacking of the webapp failed. Please make sure that \"download_url\" in the config hasn't been modified.");
+            getLogger().info("§cDisabling NCP Webserver...");
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
         }
 
         // HTTP Server

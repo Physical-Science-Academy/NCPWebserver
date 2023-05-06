@@ -1,18 +1,20 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import DynamicTheme from "./DynamicTheme.tsx";
 import {
     Alert,
-    Box, Button,
+    Box, Button, CircularProgress,
     Container,
     CssBaseline, FormControl,
     IconButton,
     InputLabel,
-    MenuItem, Select,
+    MenuItem, Paper, Select,
     SelectChangeEvent, Snackbar,
-    Stack, styled, SwipeableDrawer
+    Stack, styled, SwipeableDrawer, Typography
 } from "@mui/material";
 import icon from "./assets/ncp.png";
 import {DarkMode, LightMode, Menu} from "@mui/icons-material";
+import getModules from "./api/getModules.ts";
+import {Module} from "./models/Module.ts";
 
 const StyledButton = styled(Button)({
     maxHeight: "50px",
@@ -23,21 +25,52 @@ const StyledStack = styled(Stack)({
     justifyContent: "center"
 });
 
+const Loader = (
+    <div
+        style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center"
+        }}
+    >
+        <CircularProgress/>
+    </div>
+)
+
+
 export const App: React.FC = () => {
     // Theme
     const [theme, setTheme] = useState("light");
+
+    // Tabs
+    const [active, setActive] = useState<string>("modules");
 
     // Popups
     const [drawerState, setDrawerState] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
+    // Data
+    const [modules, setModules] = useState<Module[]>();
+
+    useEffect(() => {
+        getModules().then((modules) => {
+            setModules(modules);
+            console.log(modules);
+        }).catch((error) => {
+            console.log(error);
+        });
+    }, []);
+
     return (
         <DynamicTheme themeName={theme}>
-            <CssBaseline />
+            <CssBaseline/>
             {/* Header */}
-            <Container sx={{
-                p: 1
+            <Paper sx={{
+                p: 1,
+                borderBottom: "1px solid #e0e0e0",
+                borderBottomRightRadius: "10px",
+                borderBottomLeftRadius: "10px",
             }}>
                 <Stack direction={"row"}>
                     <Box flex={1}>
@@ -53,7 +86,8 @@ export const App: React.FC = () => {
                             }}>
                                 <Stack direction={"row"} spacing={2}>
                                     <StyledStack direction={"column"}>
-                                        <StyledButton href={"/"} variant={"outlined"}>Modules</StyledButton>
+                                        <StyledButton onClick={() => setActive("modules")}
+                                                      variant={active == "modules" ? "contained" : "outlined"}>Modules</StyledButton>
                                     </StyledStack>
                                 </Stack>
                             </Box>
@@ -92,9 +126,40 @@ export const App: React.FC = () => {
                         </StyledStack>
                     </Stack>
                 </Stack>
+            </Paper>
+
+            {/* Body */}
+            <Container sx={{
+                p: 1,
+                mt: 2
+            }}>
+                {active === "modules" && (
+                    !modules ? Loader : (
+                        <Stack direction={"column"} spacing={2}>
+                            <Typography variant={"h4"}>Modules</Typography>
+                            {
+                                modules.map((module) => {
+                                    return (
+                                        <Paper sx={{p: 1}}>
+                                            <Stack direction={"row"} justifyContent={"space-between"}>
+                                                <Stack direction={"column"}>
+                                                    <Typography variant={"h6"}>{module.baseName}</Typography>
+                                                    <Typography variant={"body2"}>{module.typeName}</Typography>
+                                                </Stack>
+                                                <Stack direction={"column"}>
+                                                    <Typography variant={"h6"}>{module.version}</Typography>
+                                                    <Typography variant={"body2"}>From {module.author}</Typography>
+                                                </Stack>
+                                            </Stack>
+                                        </Paper>
+                                    );
+                                })
+                            }
+                        </Stack>
+                    )
+                )}
             </Container>
 
-            {/* Main */}
             {/* Footer */}
 
             {/* Additional */}
@@ -107,7 +172,8 @@ export const App: React.FC = () => {
                 <Box m={5}>
                     <Stack direction={"column"} spacing={2}>
                         <StyledStack direction={"column"}>
-                            <StyledButton href={"/"} variant={"outlined"}>Modules</StyledButton>
+                            <StyledButton onClick={() => setActive("modules")}
+                                          variant={active == "modules" ? "contained" : "outlined"}>Modules</StyledButton>
                         </StyledStack>
                         <StyledStack>
                             <FormControl fullWidth>
