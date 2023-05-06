@@ -1,0 +1,10 @@
+name: NCPWebserver
+main: com.cimeyclust.ncpwebserver.Plugin
+version: ${project.version}
+api: [ "1.0.0" ]
+website: https://cimeyclust.com
+author: Verox001
+description: Provides endpoints and a web interface for the No Cheat Plus Plugin, accessible via HTTP and authentication.
+
+depend:
+  - NoCheatPlus
