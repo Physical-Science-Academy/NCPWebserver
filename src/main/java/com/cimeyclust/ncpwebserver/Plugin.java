@@ -4,23 +4,23 @@ import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.Config;
 import net.catrainbow.nocheatplus.NoCheatPlus;
 import net.catrainbow.nocheatplus.checks.Check;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class Plugin extends PluginBase {
     private static Plugin instance;
@@ -88,7 +88,7 @@ public class Plugin extends PluginBase {
     }
 
     public void downloadAndExtractWebApp(String url, File destination) throws IOException {
-        File zipFile = new File(destination, "webapp.zip");
+        File file = new File(destination, "webapp.zip");
 
         // Download the ZIP file
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -97,28 +97,28 @@ public class Plugin extends PluginBase {
                 HttpEntity entity = response.getEntity();
                 if (entity != null) {
                     try (InputStream inputStream = entity.getContent()) {
-                        Files.copy(inputStream, zipFile.toPath());
+                        if (!destination.exists()) {
+                            destination.mkdirs();
+                        }
+                        Files.copy(inputStream, file.toPath());
                     }
                 }
             }
         }
 
         // Extract the ZIP file to the destination directory
-        try (ZipFile zip = new ZipFile(zipFile)) {
-            while (zip.getEntries().hasMoreElements()) {
-                ZipArchiveEntry entry = zip.getEntries().nextElement();
-                File outputFile = new File(destination, entry.getName());
-
+        try (ZipFile zipFile = new ZipFile(file, ZipFile.OPEN_READ)) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                Path entryPath = new File(destination, entry.getName()).toPath();
                 if (entry.isDirectory()) {
-                    outputFile.mkdirs();
+                    Files.createDirectories(entryPath);
                 } else {
-                    outputFile.getParentFile().mkdirs();
-                    try (InputStream inputStream = zip.getInputStream(entry);
-                         FileOutputStream outputStream = new FileOutputStream(outputFile)) {
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = inputStream.read(buffer)) != -1) {
-                            outputStream.write(buffer, 0, bytesRead);
+                    Files.createDirectories(entryPath.getParent());
+                    try (InputStream in = zipFile.getInputStream(entry)) {
+                        try (OutputStream out = Files.newOutputStream(entryPath.toFile().toPath())) {
+                            IOUtils.copy(in, out);
                         }
                     }
                 }
@@ -126,7 +126,7 @@ public class Plugin extends PluginBase {
         }
 
         // Delete the downloaded ZIP file
-        Files.delete(zipFile.toPath());
+        Files.delete(file.toPath());
     }
 
     @Override
