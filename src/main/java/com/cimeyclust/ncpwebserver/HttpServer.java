@@ -36,7 +36,10 @@ public class HttpServer extends NanoHTTPD {
                 }
         }
 
-        return newFixedLengthResponse(Response.Status.lookup(code), "application/json", responseBody);
+        // TODO: Remove unsafe code in production
+        Response response = newFixedLengthResponse(Response.Status.lookup(code), "application/json", responseBody);
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        return response;
     }
 
     private Response serveStaticFiles(IHTTPSession session, File webapp) {

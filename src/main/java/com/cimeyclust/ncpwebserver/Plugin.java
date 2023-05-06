@@ -41,7 +41,7 @@ public class Plugin extends PluginBase {
         // Setting up webapp
         getLogger().info("Webapp is being downloaded and extracted...");
         try {
-            downloadAndExtractWebApp(config.getString("download_url"), new File(getDataFolder() + "/webapp"));
+            setupWebapp(config.getString("download_url"), new File(getDataFolder() + "/webapp"));
         } catch (IOException e) {
             e.printStackTrace();
             // TODO: Add when in production
@@ -87,7 +87,7 @@ public class Plugin extends PluginBase {
         }
     }
 
-    public void downloadAndExtractWebApp(String url, File destination) throws IOException {
+    public void setupWebapp(String url, File destination) throws IOException {
         File file = new File(destination, "webapp.zip");
 
         // Download the ZIP file
