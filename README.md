@@ -1,0 +1,2 @@
+# NCPWebserver
+This simple and effective NCP Extension provides a web interface to manage the No-Cheat-Plus Anticheat on your Minecraft NukkitX server. With this plugin, server administrators can easily monitor and adjust settings for fair gameplay in a Webview without having to deal with manual configuration files.
