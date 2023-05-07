@@ -2,8 +2,8 @@ package com.cimeyclust.ncpwebserver;
 
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.Config;
+import com.cimeyclust.ncpwebserver.models.Module;
 import net.catrainbow.nocheatplus.NoCheatPlus;
-import net.catrainbow.nocheatplus.checks.Check;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -11,14 +11,17 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -150,8 +153,16 @@ public class Plugin extends PluginBase {
         return server;
     }
 
-    public List<Check> getModules() {
-        return new ArrayList<>(ncp.getAllNCPCheck().values());
+    public List<Module> getModules() {
+        return ncp.getAllNCPCheck().values().stream()
+                .map(check -> new Module(
+                        check.getTypeName().name(),
+                        check.getBaseName(),
+                        check.getRegisterCom().getVersion(),
+                        check.getRegisterCom().getAuthor(),
+                        ncp.getComManager().isUsedChecks(check.getBaseName()))
+                )
+                .collect(Collectors.toList());
     }
 
     synchronized public static Plugin getInstance() {

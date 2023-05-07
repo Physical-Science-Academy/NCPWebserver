@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import DynamicTheme from "./DynamicTheme.tsx";
 import {
     Alert,
-    Box, Button, CircularProgress,
+    Box, Button, Checkbox, CircularProgress,
     Container,
     CssBaseline, FormControl,
     IconButton,
@@ -15,6 +15,7 @@ import icon from "./assets/ncp.png";
 import {DarkMode, LightMode, Menu} from "@mui/icons-material";
 import getModules from "./api/getModules.ts";
 import {Module} from "./models/Module.ts";
+import updateModule from "./api/updateModule.ts";
 
 const StyledButton = styled(Button)({
     maxHeight: "50px",
@@ -140,15 +141,26 @@ export const App: React.FC = () => {
                             {
                                 modules.map((module) => {
                                     return (
-                                        <Paper sx={{p: 1}}>
-                                            <Stack direction={"row"} justifyContent={"space-between"}>
+                                        <Paper sx={{p: 1}} key={module.baseName}>
+                                            <Stack direction={"row"} justifyContent={"space-between"} alignItems={"center"}>
                                                 <Stack direction={"column"}>
                                                     <Typography variant={"h6"}>{module.baseName}</Typography>
                                                     <Typography variant={"body2"}>{module.typeName}</Typography>
                                                 </Stack>
-                                                <Stack direction={"column"}>
-                                                    <Typography variant={"h6"}>{module.version}</Typography>
-                                                    <Typography variant={"body2"}>From {module.author}</Typography>
+                                                <Stack direction={"row"} spacing={1}>
+                                                    <Stack direction={"column"}>
+                                                        <Typography variant={"h6"}>{module.version}</Typography>
+                                                        <Typography variant={"body2"}>From {module.author}</Typography>
+                                                    </Stack>
+                                                    <Checkbox checked={module.isEnabled} onChange={() => {
+                                                        module.isEnabled = !module.isEnabled;
+                                                        updateModule(module).then((modules) => {
+                                                            setModules(modules);
+                                                            setSuccess("Module updated successfully!");
+                                                        }).catch((error) => {
+                                                            console.log(error);
+                                                        });
+                                                    }}></Checkbox>
                                                 </Stack>
                                             </Stack>
                                         </Paper>
