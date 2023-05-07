@@ -1,21 +1,19 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import DynamicTheme from "./DynamicTheme.tsx";
 import {
     Alert,
-    Box, Button, Checkbox, CircularProgress,
+    Box, Button,
     Container,
     CssBaseline, FormControl,
     IconButton,
     InputLabel,
     MenuItem, Paper, Select,
     SelectChangeEvent, Snackbar,
-    Stack, styled, SwipeableDrawer, Typography
+    Stack, styled, SwipeableDrawer
 } from "@mui/material";
 import icon from "./assets/ncp.png";
 import {DarkMode, LightMode, Menu} from "@mui/icons-material";
-import getModules from "./api/getModules.ts";
-import {Module} from "./models/Module.ts";
-import updateModule from "./api/updateModule.ts";
+import {Modules} from "./Tabs/Modules.tsx";
 
 const StyledButton = styled(Button)({
     maxHeight: "50px",
@@ -25,18 +23,6 @@ const StyledButton = styled(Button)({
 const StyledStack = styled(Stack)({
     justifyContent: "center"
 });
-
-const Loader = (
-    <div
-        style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center"
-        }}
-    >
-        <CircularProgress/>
-    </div>
-)
 
 
 export const App: React.FC = () => {
@@ -50,17 +36,6 @@ export const App: React.FC = () => {
     const [drawerState, setDrawerState] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-
-    // Data
-    const [modules, setModules] = useState<Module[]>();
-
-    useEffect(() => {
-        getModules().then((modules) => {
-            setModules(modules);
-        }).catch((error) => {
-            console.log(error);
-        });
-    }, []);
 
     return (
         <DynamicTheme themeName={theme}>
@@ -134,40 +109,7 @@ export const App: React.FC = () => {
                 mt: 2
             }}>
                 {active === "modules" && (
-                    !modules ? Loader : (
-                        <Stack direction={"column"} spacing={2}>
-                            <Typography variant={"h4"}>Modules</Typography>
-                            {
-                                modules.map((module) => {
-                                    return (
-                                        <Paper sx={{p: 1}} key={module.baseName}>
-                                            <Stack direction={"row"} justifyContent={"space-between"} alignItems={"center"}>
-                                                <Stack direction={"column"}>
-                                                    <Typography variant={"h6"}>{module.baseName}</Typography>
-                                                    <Typography variant={"body2"}>{module.typeName}</Typography>
-                                                </Stack>
-                                                <Stack direction={"row"} spacing={1}>
-                                                    <Stack direction={"column"}>
-                                                        <Typography variant={"h6"}>{module.version}</Typography>
-                                                        <Typography variant={"body2"}>From {module.author}</Typography>
-                                                    </Stack>
-                                                    <Checkbox checked={module.isEnabled} onChange={() => {
-                                                        module.isEnabled = !module.isEnabled;
-                                                        updateModule(module).then((modules) => {
-                                                            setModules(modules);
-                                                            setSuccess("Module updated successfully!");
-                                                        }).catch((error) => {
-                                                            console.log(error);
-                                                        });
-                                                    }}></Checkbox>
-                                                </Stack>
-                                            </Stack>
-                                        </Paper>
-                                    );
-                                })
-                            }
-                        </Stack>
-                    )
+                    <Modules setError={setError} setSuccess={setSuccess}/>
                 )}
             </Container>
 
