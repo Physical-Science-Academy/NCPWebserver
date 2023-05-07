@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.cimeyclust.ncpwebserver</groupId>
   <artifactId>NCPWebserver</artifactId>
-  <version>0.9</version>
+  <version>0.9.2</version>
   <build>
     <defaultGoal>clean package</defaultGoal>
     <resources>
