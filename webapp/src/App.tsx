@@ -57,7 +57,6 @@ export const App: React.FC = () => {
     useEffect(() => {
         getModules().then((modules) => {
             setModules(modules);
-            console.log(modules);
         }).catch((error) => {
             console.log(error);
         });
