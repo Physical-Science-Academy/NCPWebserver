@@ -14,6 +14,7 @@ import {
 import icon from "./assets/ncp.png";
 import {DarkMode, LightMode, Menu} from "@mui/icons-material";
 import {Modules} from "./Tabs/Modules.tsx";
+import {Players} from "./Tabs/Players.tsx";
 
 const StyledButton = styled(Button)({
     maxHeight: "50px",
@@ -64,6 +65,10 @@ export const App: React.FC = () => {
                                         <StyledButton onClick={() => setActive("modules")}
                                                       variant={active == "modules" ? "contained" : "outlined"}>Modules</StyledButton>
                                     </StyledStack>
+                                    <StyledStack direction={"column"}>
+                                        <StyledButton onClick={() => setActive("players")}
+                                                      variant={active == "players" ? "contained" : "outlined"}>Players</StyledButton>
+                                    </StyledStack>
                                 </Stack>
                             </Box>
                             <IconButton size="large" onClick={() => setDrawerState(true)} sx={{
@@ -111,6 +116,9 @@ export const App: React.FC = () => {
                 {active === "modules" && (
                     <Modules setError={setError} setSuccess={setSuccess}/>
                 )}
+                {active === "players" && (
+                    <Players setError={setError} setSuccess={setSuccess}/>
+                )}
             </Container>
 
             {/* Footer */}
@@ -127,6 +135,10 @@ export const App: React.FC = () => {
                         <StyledStack direction={"column"}>
                             <StyledButton onClick={() => setActive("modules")}
                                           variant={active == "modules" ? "contained" : "outlined"}>Modules</StyledButton>
+                        </StyledStack>
+                        <StyledStack direction={"column"}>
+                            <StyledButton onClick={() => setActive("players")}
+                                          variant={active == "players" ? "contained" : "outlined"}>Players</StyledButton>
                         </StyledStack>
                         <StyledStack>
                             <FormControl fullWidth>

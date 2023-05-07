@@ -1,8 +1,11 @@
 package com.cimeyclust.ncpwebserver;
 
+import cn.nukkit.Player;
+import com.cimeyclust.ncpwebserver.models.BanEntry;
 import com.cimeyclust.ncpwebserver.models.Module;
 import com.google.gson.Gson;
 import fi.iki.elonen.NanoHTTPD;
+import net.catrainbow.nocheatplus.checks.CheckType;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
 
 public class HttpServer extends NanoHTTPD {
     private Gson gson;
@@ -33,6 +38,34 @@ public class HttpServer extends NanoHTTPD {
                     responseBody = gson.toJson(Plugin.getInstance().getModules());
                 } else {
                     responseBody = gson.toJson(Plugin.getInstance().getModules());
+                }
+                break;
+
+            case "/players":
+                responseBody = gson.toJson(Plugin.getInstance().getPlayers());
+                break;
+
+            case "/players/ban":
+                if (session.getMethod().equals(Method.POST)) {
+                    BanEntry entry = gson.fromJson(getRequestBody(session), BanEntry.class);
+                    Optional<Player> player = Plugin.getInstance().getServer().getPlayer(UUID.fromString(entry.uuid));
+                    if (player.isPresent())
+                        Plugin.getInstance().getNcp().banPlayer(player.get(), entry.days, entry.hours, entry.minutes);
+                    else
+                        throw new IllegalArgumentException("Player not found");
+                    responseBody = gson.toJson(Plugin.getInstance().getPlayers());
+                }
+                break;
+
+            case "/players/kick":
+                if (session.getMethod().equals(Method.POST)) {
+                    BanEntry entry = gson.fromJson(getRequestBody(session), BanEntry.class);
+                    Optional<Player> player = Plugin.getInstance().getServer().getPlayer(UUID.fromString(entry.uuid));
+                    if (player.isPresent())
+                        Plugin.getInstance().getNcp().kickPlayer(player.get(), CheckType.STAFF);
+                    else
+                        throw new IllegalArgumentException("Player not found");
+                    responseBody = gson.toJson(Plugin.getInstance().getPlayers());
                 }
                 break;
 

@@ -3,6 +3,7 @@ package com.cimeyclust.ncpwebserver;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.Config;
 import com.cimeyclust.ncpwebserver.models.Module;
+import com.cimeyclust.ncpwebserver.models.Player;
 import net.catrainbow.nocheatplus.NoCheatPlus;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -19,6 +20,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -162,6 +164,16 @@ public class Plugin extends PluginBase {
                         check.getRegisterCom().getAuthor(),
                         ncp.getComManager().isUsedChecks(check.getBaseName()))
                 )
+                .collect(Collectors.toList());
+    }
+
+    public List<Player> getPlayers() {
+        return ncp.getAllPlayerData().values().stream()
+                .map(playerData -> new Player(
+                        playerData.getPlayer().getUniqueId().toString(),
+                        playerData.getPlayerName(),
+                        ncp.getNCPBanRecord().exists(playerData.getPlayerName()) ? Date.valueOf(ncp.getNCPBanRecord().getStringList(playerData.getPlayerName()).get(1)) : null
+                ))
                 .collect(Collectors.toList());
     }
 
