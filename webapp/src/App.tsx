@@ -126,13 +126,13 @@ export const App: React.FC = () => {
                 p: 1,
                 mt: 2
             }}>
-                {active === "modules" && (
+                {(active === "modules" && !unauthenticated) && (
                     <Modules setError={setError} setSuccess={setSuccess} setUnauthenticated={() => setUnauthenticated(true)}/>
                 )}
-                {active === "players" && (
+                {(active === "players" && !unauthenticated) && (
                     <Players setError={setError} setSuccess={setSuccess} setUnauthenticated={() => setUnauthenticated(true)}/>
                 )}
-                {active === "banlist" && (
+                {(active === "banlist" && !unauthenticated) && (
                     <BanList setError={setError} setSuccess={setSuccess} setUnauthenticated={() => setUnauthenticated(true)}/>
                 )}
             </Container>
@@ -234,6 +234,8 @@ export const App: React.FC = () => {
                         setLoginFailed(false);
                         login(username, password).then(() => {
                             setLoading(false);
+                            setLoginFailed(false);
+                            setUnauthenticated(false);
                         }).catch((error) => {
                             setLoading(false);
                             setLoginFailed(true);

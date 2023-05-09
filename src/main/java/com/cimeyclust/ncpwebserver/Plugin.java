@@ -49,7 +49,7 @@ public class Plugin extends PluginBase {
         config = new Config(getDataFolder() + "/config.yml", Config.YAML);
         if (Objects.equals(config.getString("secret"), "SECRET")) {
             // Random String as Value for the issuer key
-            config.set("issuer", UUID.randomUUID().toString());
+            config.set("secret", UUID.randomUUID().toString());
             config.save();
         }
 

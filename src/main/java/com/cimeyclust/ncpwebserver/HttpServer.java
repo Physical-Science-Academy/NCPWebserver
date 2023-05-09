@@ -128,19 +128,13 @@ public class HttpServer extends NanoHTTPD {
                 break;
 
             default:
-                if (!isAuthenticated(session)) {
-                    code = 401;
-                    responseBody = "{\"message\": \"Not authenticated!\"}";
-                    break;
-                }
                 Response staticFileResponse = serveStaticFiles(session, new File(webapp.getPath()));
                 if (staticFileResponse != null) {
                     return staticFileResponse;
                 }
         }
 
-        Response response = newFixedLengthResponse(Response.Status.lookup(code), "application/json", responseBody);
-        return response;
+        return newFixedLengthResponse(Response.Status.lookup(code), "application/json", responseBody);
     }
 
     private boolean isAuthenticated(IHTTPSession session) {
