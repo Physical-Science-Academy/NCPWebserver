@@ -23,4 +23,4 @@ download_url: https://github.com/Physical-Science-Academy/NCPWebserver/releases/
 3. Change the `port`, `username` and the `password` (and maybe the `hostname`). The port should be free and available on your server.
 4. Start your Server again.
 
-**Perfect!** Now the plugin should start up **successfully** and you should be ready to access the panel via the URL, debugged in the console. (If use used `0.0.0.0` as hostname, you need to use the default IP Address of your server.)
+**Perfect!** Now the plugin should start up **successfully** and you should be ready to access the panel via the URL, debugged in the console. (If `0.0.0.0` is used as hostname, you need to use the default IP Address of your server.)
