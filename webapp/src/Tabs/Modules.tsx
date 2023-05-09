@@ -8,9 +8,10 @@ import {Module} from "../models/Module.ts";
 interface Props {
     setSuccess: (message: string | null) => void;
     setError: (message: string | null) => void;
+    setUnauthenticated: () => void;
 }
 
-export const Modules: React.FC<Props> = ({ setSuccess }) => {
+export const Modules: React.FC<Props> = ({ setSuccess, setUnauthenticated }) => {
     // Data
     const [modules, setModules] = useState<Module[]>();
 
@@ -19,6 +20,7 @@ export const Modules: React.FC<Props> = ({ setSuccess }) => {
             setModules(modules);
         }).catch((error) => {
             console.log(error);
+            setUnauthenticated();
         });
     }, []);
 

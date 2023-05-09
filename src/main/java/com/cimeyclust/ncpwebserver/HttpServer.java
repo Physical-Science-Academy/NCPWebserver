@@ -1,7 +1,11 @@
 package com.cimeyclust.ncpwebserver;
 
 import cn.nukkit.Player;
+import cn.nukkit.utils.Config;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.cimeyclust.ncpwebserver.models.BanEntry;
+import com.cimeyclust.ncpwebserver.models.Credentials;
 import com.cimeyclust.ncpwebserver.models.Module;
 import com.google.gson.Gson;
 import fi.iki.elonen.NanoHTTPD;
@@ -31,7 +35,27 @@ public class HttpServer extends NanoHTTPD {
         String responseBody = "";
         int code = 200;
         switch (session.getUri()) {
+            case "/login":
+                Credentials credentials = gson.fromJson(getRequestBody(session), Credentials.class);
+                if (Plugin.getInstance().getConfig().getString("username").equals(credentials.username) &&
+                        Plugin.getInstance().getConfig().getString("password").equals(credentials.password)) {
+                    Algorithm algorithm = Algorithm.HMAC256(Plugin.getInstance().getConfig().getString("secret"));
+                    String token = JWT.create()
+                            .withIssuer("ncpwebserver")
+                            .sign(algorithm);
+                    responseBody = "{\"message\": \"Login successful!\", \"token\": \"" + token + "\"}";
+                } else {
+                    responseBody = "Invalid username or password!";
+                    code = 401;
+                }
+                break;
+
             case "/modules":
+                if (!isAuthenticated(session)) {
+                    code = 401;
+                    responseBody = "{\"message\": \"Not authenticated!\"}";
+                    break;
+                }
                 if (session.getMethod().equals(Method.PATCH) || session.getMethod().equals(Method.PUT)) {
                     Module module = gson.fromJson(getRequestBody(session), Module.class);
                     Plugin.getInstance().getNcp().getComManager().setChecksUsed(module.baseName, module.isEnabled);
@@ -42,10 +66,20 @@ public class HttpServer extends NanoHTTPD {
                 break;
 
             case "/players":
+                if (!isAuthenticated(session)) {
+                    code = 401;
+                    responseBody = "{\"message\": \"Not authenticated!\"}";
+                    break;
+                }
                 responseBody = gson.toJson(Plugin.getInstance().getPlayers());
                 break;
 
             case "/players/ban":
+                if (!isAuthenticated(session)) {
+                    code = 401;
+                    responseBody = "{\"message\": \"Not authenticated!\"}";
+                    break;
+                }
                 if (session.getMethod().equals(Method.POST)) {
                     BanEntry entry = gson.fromJson(getRequestBody(session), BanEntry.class);
                     Optional<Player> player = Plugin.getInstance().getServer().getPlayer(UUID.fromString(entry.uuid));
@@ -58,6 +92,11 @@ public class HttpServer extends NanoHTTPD {
                 break;
 
             case "/players/kick":
+                if (!isAuthenticated(session)) {
+                    code = 401;
+                    responseBody = "{\"message\": \"Not authenticated!\"}";
+                    break;
+                }
                 if (session.getMethod().equals(Method.POST)) {
                     BanEntry entry = gson.fromJson(getRequestBody(session), BanEntry.class);
                     Optional<Player> player = Plugin.getInstance().getServer().getPlayer(UUID.fromString(entry.uuid));
@@ -69,19 +108,57 @@ public class HttpServer extends NanoHTTPD {
                 }
                 break;
 
+            case "/banned":
+                if (!isAuthenticated(session)) {
+                    code = 401;
+                    responseBody = "{\"message\": \"Not authenticated!\"}";
+                    break;
+                }
+                if (session.getMethod().equals(Method.POST)) {
+                    com.cimeyclust.ncpwebserver.models.Player player = gson.fromJson(getRequestBody(session), com.cimeyclust.ncpwebserver.models.Player.class);
+
+                    if (Plugin.getInstance().getNcp().getNCPBanRecord().exists(player.name)) {
+                        Config config = Plugin.getInstance().getNcp().getNCPBanRecord();
+                        config.remove(player.name);
+                        config.save(true);
+                    } else
+                        throw new IllegalArgumentException("Player not banned");
+                }
+                responseBody = gson.toJson(Plugin.getInstance().getBannedPlayers());
+                break;
+
             default:
+                if (!isAuthenticated(session)) {
+                    code = 401;
+                    responseBody = "{\"message\": \"Not authenticated!\"}";
+                    break;
+                }
                 Response staticFileResponse = serveStaticFiles(session, new File(webapp.getPath()));
                 if (staticFileResponse != null) {
                     return staticFileResponse;
                 }
         }
 
-        // TODO: Remove unsafe code in production
         Response response = newFixedLengthResponse(Response.Status.lookup(code), "application/json", responseBody);
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        response.addHeader("Access-Control-Allow-Methods", "*");
-        response.addHeader("Access-Control-Allow-Headers", "*");
         return response;
+    }
+
+    private boolean isAuthenticated(IHTTPSession session) {
+        String authHeader = session.getHeaders().get("authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring("Bearer ".length());
+            try {
+                Algorithm algorithm = Algorithm.HMAC256(Plugin.getInstance().getConfig().getString("secret"));
+                JWT.require(algorithm)
+                        .withIssuer("ncpwebserver")
+                        .build()
+                        .verify(token);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     private Response serveStaticFiles(IHTTPSession session, File webapp) {

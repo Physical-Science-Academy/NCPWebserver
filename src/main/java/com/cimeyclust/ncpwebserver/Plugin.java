@@ -5,6 +5,8 @@ import cn.nukkit.utils.Config;
 import com.cimeyclust.ncpwebserver.models.Module;
 import com.cimeyclust.ncpwebserver.models.Player;
 import net.catrainbow.nocheatplus.NoCheatPlus;
+import net.catrainbow.nocheatplus.checks.CheckType;
+import net.catrainbow.nocheatplus.players.PlayerData;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -21,8 +23,11 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -42,6 +47,11 @@ public class Plugin extends PluginBase {
         getLogger().info("Saving and reading config...");
         saveResource("config.yml", false);
         config = new Config(getDataFolder() + "/config.yml", Config.YAML);
+        if (Objects.equals(config.getString("secret"), "SECRET")) {
+            // Random String as Value for the issuer key
+            config.set("issuer", UUID.randomUUID().toString());
+            config.save();
+        }
 
         // Setting up webapp
         getLogger().info("Webapp is being downloaded and extracted...");
@@ -172,9 +182,30 @@ public class Plugin extends PluginBase {
                 .map(playerData -> new Player(
                         playerData.getPlayer().getUniqueId().toString(),
                         playerData.getPlayerName(),
-                        ncp.getNCPBanRecord().exists(playerData.getPlayerName()) ? Date.valueOf(ncp.getNCPBanRecord().getStringList(playerData.getPlayerName()).get(1)) : null
+                        ncp.getNCPBanRecord().exists(playerData.getPlayerName()) ? Timestamp.valueOf(ncp.getNCPBanRecord().getStringList(playerData.getPlayerName()).get(1)) : null,
+                        getViolationLevelSafely(playerData)
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public List<Player> getBannedPlayers() {
+        return ncp.getNCPBanRecord().getKeys(false).stream()
+                .filter(playerName -> ncp.getNCPBanRecord().exists(playerName))
+                .map(playerName -> new Player(
+                        getServer().getOfflinePlayer(playerName).getUniqueId().toString(),
+                        playerName,
+                        Timestamp.valueOf(ncp.getNCPBanRecord().getStringList(playerName).get(1)),
+                        0.0
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private static double getViolationLevelSafely(PlayerData playerData) {
+        try {
+            return playerData.getViolationData(CheckType.ALL).getVL();
+        } catch (NullPointerException e) {
+            return 0.0;
+        }
     }
 
     synchronized public static Plugin getInstance() {

@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {
     Box,
-    Button,
+    Button, Chip,
     Dialog,
     DialogActions, DialogContent,
     DialogTitle,
@@ -21,9 +21,10 @@ import kickPlayer from "../api/kickPlayer.ts";
 interface Props {
     setSuccess: (message: string | null) => void;
     setError: (message: string | null) => void;
+    setUnauthenticated: () => void;
 }
 
-export const Players: React.FC<Props> = ({ setError, setSuccess }) => {
+export const Players: React.FC<Props> = ({ setError, setSuccess, setUnauthenticated }) => {
     // Data
     const [players, setPlayers] = useState<Player[]>();
     const [count, setCount] = useState<number>(0);
@@ -38,6 +39,7 @@ export const Players: React.FC<Props> = ({ setError, setSuccess }) => {
             setPlayers(players);
         }).catch((error) => {
             console.log(error);
+            setUnauthenticated();
         });
 
         setTimeout(() => {
@@ -66,18 +68,21 @@ export const Players: React.FC<Props> = ({ setError, setSuccess }) => {
                                                 }}>{player.uuid}</Typography>
                                             </Stack>
                                         </Stack>
-                                        <Stack direction={"row"} spacing={1}>
+                                        <Stack direction={"row"} spacing={1} alignItems={"center"}>
                                             <Button color={"error"} onClick={() => setBanPlayer(player)}>Ban</Button>
                                             <Tooltip title={"Kick"}>
                                                 <IconButton color={"error"} onClick={() => {
                                                     kickPlayer(player).then((players) => {
                                                         setPlayers(players);
-                                                        setSuccess(`Player ${player.name} was banned kicked.`);
+                                                        setSuccess(`Player ${player.name} was kicked.`);
                                                     }).catch((error) => {
                                                         setError("Failed to kick player. Maybe he's not online anymore.");
                                                         console.log(error);
                                                     });
                                                 }}><HighlightOffRounded/></IconButton>
+                                            </Tooltip>
+                                            <Tooltip title={"Violation Level"}>
+                                                <Chip label={player.violationLevel} color={player.violationLevel == 0 ? "success" : "info"} />
                                             </Tooltip>
                                         </Stack>
                                     </Stack>

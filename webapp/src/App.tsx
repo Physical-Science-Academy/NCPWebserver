@@ -1,20 +1,22 @@
 import React, {useState} from "react";
 import DynamicTheme from "./DynamicTheme.tsx";
 import {
-    Alert,
-    Box, Button,
+    Alert, Backdrop,
+    Box, Button, CircularProgress,
     Container,
-    CssBaseline, FormControl,
+    CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl,
     IconButton,
     InputLabel,
     MenuItem, Paper, Select,
     SelectChangeEvent, Snackbar,
-    Stack, styled, SwipeableDrawer
+    Stack, styled, SwipeableDrawer, TextField
 } from "@mui/material";
 import icon from "./assets/ncp.png";
 import {DarkMode, LightMode, Menu} from "@mui/icons-material";
 import {Modules} from "./Tabs/Modules.tsx";
 import {Players} from "./Tabs/Players.tsx";
+import {BanList} from "./Tabs/BanList.tsx";
+import login from "./api/login.ts";
 
 const StyledButton = styled(Button)({
     maxHeight: "50px",
@@ -35,8 +37,15 @@ export const App: React.FC = () => {
 
     // Popups
     const [drawerState, setDrawerState] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [unauthenticated, setUnauthenticated] = useState<boolean>(false);
+
+    // Login Form
+    const [username, setUsername] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [loginFailed, setLoginFailed] = useState<boolean>(false);
 
     return (
         <DynamicTheme themeName={theme}>
@@ -68,6 +77,10 @@ export const App: React.FC = () => {
                                     <StyledStack direction={"column"}>
                                         <StyledButton onClick={() => setActive("players")}
                                                       variant={active == "players" ? "contained" : "outlined"}>Players</StyledButton>
+                                    </StyledStack>
+                                    <StyledStack direction={"column"}>
+                                        <StyledButton onClick={() => setActive("banlist")}
+                                                      variant={active == "banlist" ? "contained" : "outlined"}>Banlist</StyledButton>
                                     </StyledStack>
                                 </Stack>
                             </Box>
@@ -114,10 +127,13 @@ export const App: React.FC = () => {
                 mt: 2
             }}>
                 {active === "modules" && (
-                    <Modules setError={setError} setSuccess={setSuccess}/>
+                    <Modules setError={setError} setSuccess={setSuccess} setUnauthenticated={() => setUnauthenticated(true)}/>
                 )}
                 {active === "players" && (
-                    <Players setError={setError} setSuccess={setSuccess}/>
+                    <Players setError={setError} setSuccess={setSuccess} setUnauthenticated={() => setUnauthenticated(true)}/>
+                )}
+                {active === "banlist" && (
+                    <BanList setError={setError} setSuccess={setSuccess} setUnauthenticated={() => setUnauthenticated(true)}/>
                 )}
             </Container>
 
@@ -139,6 +155,10 @@ export const App: React.FC = () => {
                         <StyledStack direction={"column"}>
                             <StyledButton onClick={() => setActive("players")}
                                           variant={active == "players" ? "contained" : "outlined"}>Players</StyledButton>
+                        </StyledStack>
+                        <StyledStack direction={"column"}>
+                            <StyledButton onClick={() => setActive("banlist")}
+                                          variant={active == "banlist" ? "contained" : "outlined"}>Banlist</StyledButton>
                         </StyledStack>
                         <StyledStack>
                             <FormControl fullWidth>
@@ -175,6 +195,59 @@ export const App: React.FC = () => {
                     {success}
                 </Alert>
             </Snackbar>
+            <Dialog open={unauthenticated}>
+                <DialogTitle>Login</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Please login to continue
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="username"
+                        label="Username"
+                        type="text"
+                        fullWidth
+                        value={username}
+                        onChange={(event) => {
+                            setUsername(event.target.value);
+                        }}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="password"
+                        label="Password"
+                        type="password"
+                        fullWidth
+                        value={password}
+                        onChange={(event) => {
+                            setPassword(event.target.value);
+                        }}
+                    />
+                    <Alert severity="error" sx={{width: '100%', mt: 2}} hidden={!loginFailed}>
+                        Login failed. Please check your credentials and try again.
+                    </Alert>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => {
+                        setLoading(true);
+                        setLoginFailed(false);
+                        login(username, password).then(() => {
+                            setLoading(false);
+                        }).catch((error) => {
+                            setLoading(false);
+                            setLoginFailed(true);
+                            console.log(error);
+                        });
+                    }}>Login</Button>
+                </DialogActions>
+            </Dialog>
+            <Backdrop
+                sx={{ color: '#fff', zIndex: 100 }}
+                open={loading}
+            >
+                <CircularProgress color="inherit" />
+            </Backdrop>
         </DynamicTheme>
     );
 }

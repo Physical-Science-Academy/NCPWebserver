@@ -1,13 +1,13 @@
 import axios from "axios";
-import { Module } from "../models/Module";
+import {Player} from "../models/Player.ts";
 import baseUrl from "./baseUrl.ts";
 
-export default async (module: Module): Promise<Module[]> => {
-    const { data } = await axios.patch(`${baseUrl}/modules`, module, {
+export default async (): Promise<Player[]> => {
+    const { data } = await axios.get(`${baseUrl}/banned`, {
         headers: {
             "authorization": `Bearer ${localStorage.getItem('token')}`,
             "Content-Type": "application/json",
         }
     });
-    return data.map(Module.fromJson);
+    return data.map(Player.fromJson);
 };
