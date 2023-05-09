@@ -24,3 +24,9 @@ download_url: https://github.com/Physical-Science-Academy/NCPWebserver/releases/
 4. Start your Server again.
 
 **Perfect!** Now the plugin should start up **successfully** and you should be ready to access the panel via the URL, debugged in the console. (If `0.0.0.0` is used as hostname, you need to use the default IP Address of your server.)
+
+## CimeyClust Hosting
+![](https://cloud.cimeyclust.com/CimeyClust_Banner.png)
+In the CimeyClust Dashboard you can host a NukkitX Server and add one of your rented Domains as Proxy for the NCP Webpanel, so you can safely reach your panel via HTTPS and your login credentials are forwared safely.
+
+So make sure to check out our new hosting provider [CimeyClust](https://cimeyclust.com/). We offer Domains, Webspace and Gaming Servers (like NukkitX Servers) for hilarious small prices.
